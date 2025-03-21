@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;  /* White */
+    --foreground: 153 10% 33%;  /* Finch */
+
+    --card: 0 0% 100%;
+    --card-foreground: 153 10% 33%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 153 10% 33%;
+
+    --primary: 208 51% 64%;    /* Regent St Blue */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 153 10% 33%;   /* Finch */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 108 6% 88%;      /* Tasman */
+    --muted-foreground: 153 10% 40%;
+
+    --accent: 208 51% 75%;    /* Lighter Blue */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 108 6% 82%;     /* Darker Tasman */
+    --input: 108 6% 82%;      /* Darker Tasman */
+    --ring: 208 51% 75%;      /* Regent St Blue */
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 153 10% 33%;  /* Finch */
+    --foreground: 108 6% 88%;  /* Tasman */
+
+    --card: 153 10% 25%;
+    --card-foreground: 108 6% 88%;
+
+    --popover: 153 10% 33%;
+    --popover-foreground: 108 6% 88%;
+
+    --primary: 208 51% 64%;    /* Regent St Blue */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 153 10% 25%;   /* Darker Finch */
+    --secondary-foreground: 108 6% 88%;
+
+    --muted: 153 10% 25%;      /* Darker Finch */
+    --muted-foreground: 108 6% 75%;
+
+    --accent: 208 51% 75%;    /* Lighter Blue */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 108 6% 88%;
+
+    --border: 153 10% 40%;     /* Lighter Finch */
+    --input: 153 10% 40%;      /* Lighter Finch */
+    --ring: 208 51% 64%;      /* Regent St Blue */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-[hsl(var(--border))];
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.container {
+  @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+/* Custom animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-[#7CA4CB] to-[#9CC3E2];
+}
+
+/* Text shadow for gradient text */
+.text-shadow {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Card hover effects */
+.hover-card-shadow {
+  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+}
+
+/* Button animations */
+.button-pop {
+  @apply transform transition-transform active:scale-95;
+}
+
+/* Section transitions */
+.section-fade-in {
+  @apply opacity-0 translate-y-4 transition-all duration-700 ease-out;
+}
+
+.section-fade-in.visible {
+  @apply opacity-100 translate-y-0;
+}
+
+/* Social Media Embeds */
+.social-media-embed {
+  @apply w-full overflow-hidden;
+}
+
+.social-media-embed iframe {
+  @apply max-w-full w-full;
+}
+
+/* TikTok specific styles */
+.tiktok-container {
+  @apply flex justify-center items-center;
+  min-height: 500px !important;
+}
+
+.tiktok-embed {
+  @apply max-w-full w-full;
+  margin: 0 auto !important;
+}

@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  PARENT
+  MENTOR
+  INSTRUCTOR
+  ADMIN
+  T1_ADMIN
+  T2_ADMIN
+  T3_MANAGER
+  GAVELIER_PRESIDENT
+  GAVELIER_TREASURER
+  GAVELIER_SECRETARY
+  GAVELIER_VP_EDUCATION
+  GAVELIER_VP_MEMBERSHIP
+  GAVELIER_VP_PR
+  GUEST
+}
+
+model User {
+  id                    String              @id @default(cuid())
+  name                  String
+  email                 String              @unique
+  password              String
+  role                  Role                @default(GUEST)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  messages              ClassMessage[]
+  enrollments           Enrollment[]
+  eventRegistrations    EventRegistration[]
+  mentorProfile         MentorProfile?
+  receivedNotifications Notification[]      @relation("ReceiverNotifications")
+  sentNotifications     Notification[]      @relation("SenderNotifications")
+  parentConnections     ParentChild[]       @relation("StudentToParent")
+  childConnections      ParentChild[]       @relation("ParentToStudent")
+  payments              Payment[]
+}
+
+model Class {
+  id                String                @id @default(cuid())
+  title             String
+  description       String
+  price             Float?
+  capacity          Int
+  currentCount      Int                   @default(0)
+  startDate         DateTime
+  endDate           DateTime?
+  schedule          String
+  location          String?
+  instructor        String?
+  instructorId      String?
+  level             String?
+  isActive          Boolean               @default(true)
+  requiresInterview Boolean               @default(false)
+  stripeProductId   String?
+  stripePriceId     String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  imageData         String?
+  instructorProfile MentorProfile?        @relation(fields: [instructorId], references: [id])
+  announcements     ClassAnnouncement[]
+  curriculumItems   ClassCurriculumItem[]
+  messages          ClassMessage[]
+  enrollments       Enrollment[]
+}
+
+model Event {
+  id              String              @id @default(cuid())
+  title           String
+  description     String
+  date            DateTime
+  location        String
+  imageData       String?
+  capacity        Int?
+  currentCount    Int                 @default(0)
+  isActive        Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  price           Float?
+  stripePriceId   String?
+  stripeProductId String?
+  registrations   EventRegistration[]
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  classId   String
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment   Payment?
+}
+
+model EventRegistration {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  payment   Payment?
+}
+
+model Payment {
+  id                  String             @id @default(cuid())
+  userId              String
+  enrollmentId        String?            @unique
+  eventRegistrationId String?            @unique
+  amount              Float
+  status              String             @default("PENDING")
+  type                String             @default("CLASS")
+  stripeSessionId     String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventRegistration   EventRegistration? @relation(fields: [eventRegistrationId], references: [id])
+  enrollment          Enrollment?        @relation(fields: [enrollmentId], references: [id])
+}
+
+model StripeProduct {
+  id        String   @id @default(cuid())
+  stripeId  String   @unique
+  priceId   String
+  type      String
+  metadata  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Newsletter {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  publishDate DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  content   String
+  role      String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+}
+
+model MentorProfile {
+  id              String           @id @default(cuid())
+  bio             String
+  specialization  String
+  experience      Int
+  education       String?
+  certifications  String?
+  availability    String?
+  hourlyRate      Float?
+  profileImage    String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  userId          String           @unique
+  classes         Class[]
+  curriculumItems CurriculumItem[]
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CurriculumItem {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  content     String
+  type        String
+  order       Int
+  isPublished Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  mentorId    String
+  mentor      MentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+}
+
+model Announcement {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  publishDate DateTime  @default(now())
+  expiryDate  DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ParentChild {
+  id        String   @id @default(cuid())
+  parentId  String
+  childId   String
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  child     User     @relation("StudentToParent", fields: [childId], references: [id], onDelete: Cascade)
+  parent    User     @relation("ParentToStudent", fields: [parentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, childId])
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  type       String
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  senderId   String?
+  receiverId String
+  receiver   User     @relation("ReceiverNotifications", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User?    @relation("SenderNotifications", fields: [senderId], references: [id])
+}
+
+model ClassCurriculumItem {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  content     String?
+  type        String
+  fileUrl     String?
+  fileType    String?
+  order       Int
+  dueDate     DateTime?
+  isPublished Boolean   @default(false)
+  isPublic    Boolean   @default(false) // Whether parents can view this item
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  classId     String
+  class       Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+}
+
+model ClassAnnouncement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  authorId  String?
+  author    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+}
+
+model ClassMessage {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  userId    String
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AssignmentSubmission {
+  id               String   @id @default(cuid())
+  fileUrl          String
+  notes            String?
+  status           String   @default("SUBMITTED")
+  grade            String?
+  feedback         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  userId           String
+  curriculumItemId String
+  classId          String
+}
+
+model SocialMedia {
+  id          String   @id @default(cuid())
+  platform    String   // e.g., Facebook, Twitter, Instagram, YouTube, etc.
+  username    String
+  url         String
+  displayName String?
+  embedCode   String?  // For embedding content from the platform
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

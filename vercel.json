@@ -1,0 +1,17 @@
+{
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "env": {
+    "NEXTAUTH_SECRET": "your-nextauth-secret-placeholder",
+    "NEXTAUTH_URL": "https://speakerscircle-r1kmooyy4-amir-eftekhars-projects.vercel.app",
+    "DATABASE_URL": "file:./dev.db",
+    "ADMIN_EMAIL": "admin@example.com",
+    "ADMIN_PASSWORD": "admin123",
+    "ADMIN_NAME": "Admin User",
+    "NEXT_PUBLIC_APP_URL": "https://speakerscircle-r1kmooyy4-amir-eftekhars-projects.vercel.app",
+    "TURSO_DATABASE_URL": "libsql://speakerscircle-amir-eftekhar.turso.io",
+    "TURSO_AUTH_TOKEN": "your-turso-auth-token"
+  }
+}
