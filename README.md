@@ -57,7 +57,7 @@ npm run reset-db
 npm run seed
 
 # Export the database to Turso for Vercel deployment
-npm run export-to-turso
+npm run export-to-turso-simple
 ```
 
 ### Turso Database for Vercel
@@ -71,7 +71,7 @@ Make sure to set these environment variables in your Vercel project:
 - `NEXTAUTH_SECRET`: A random string for session encryption
 - `NEXTAUTH_URL`: Your deployed app URL
 - `NEXT_PUBLIC_APP_URL`: Your deployed app URL
-- `TURSO_DATABASE_URL`: Your Turso database URL
+- `TURSO_DATABASE_URL`: Your Turso database URL (format: `libsql://speakerscircle-username.turso.io`)
 - `TURSO_AUTH_TOKEN`: Your Turso authentication token
 - `STRIPE_SECRET_KEY`: Your Stripe secret key (optional)
 - `STRIPE_PUBLISHABLE_KEY`: Your Stripe publishable key (optional)

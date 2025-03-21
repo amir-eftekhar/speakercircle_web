@@ -1,5 +1,5 @@
 // This script exports the local SQLite database to Turso
-// Run it with: npx ts-node scripts/export-to-turso.ts
+// Run it with: npx ts-node scripts/export-to-turso-simple.ts
 
 import fs from 'fs';
 import path from 'path';
@@ -11,34 +11,6 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log('Exporting database to Turso...');
-
-  // Check if Turso CLI is installed
-  try {
-    execSync('turso --version', { stdio: 'ignore' });
-  } catch (error) {
-    console.error('Turso CLI is not installed. Please install it first:');
-    console.error('curl -sSfL https://get.tur.so/install.sh | bash');
-    process.exit(1);
-  }
-
-  // Check if TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are set
-  const tursoUrl = process.env.TURSO_DATABASE_URL;
-  const tursoToken = process.env.TURSO_AUTH_TOKEN;
-
-  if (!tursoUrl || !tursoToken) {
-    console.error('TURSO_DATABASE_URL and TURSO_AUTH_TOKEN must be set in the environment');
-    console.error('You can create a Turso database and get these values by running:');
-    console.error('turso db create speakerscircle');
-    console.error('turso db tokens create speakerscircle');
-    process.exit(1);
-  }
-
-  // Extract database name from URL
-  const dbName = tursoUrl.split('/').pop();
-  if (!dbName) {
-    console.error('Could not extract database name from TURSO_DATABASE_URL');
-    process.exit(1);
-  }
 
   // Path to the SQLite database
   const dbPath = path.resolve(process.cwd(), 'prisma/dev.db');
@@ -96,15 +68,14 @@ async function main() {
     console.log(`SQL export written to ${tempSqlPath}`);
     
     // Import the SQL file to Turso
-    console.log(`Importing to Turso database: ${dbName}...`);
-    // Export the database using turso CLI
-    // The turso CLI uses the auth token from the login, not from the environment variable
-    // So we'll create a temporary script to run the command
+    console.log(`Importing to Turso database: speakerscircle...`);
+    
+    // Create a temporary script to run the command
     const tempScriptPath = path.resolve(process.cwd(), 'prisma/export-script.sh');
     const scriptContent = `#!/bin/bash
 
 # Export the database to Turso
-turso db shell ${dbName} < ${tempSqlPath}`;
+turso db shell speakerscircle < ${tempSqlPath}`;
     
     fs.writeFileSync(tempScriptPath, scriptContent);
     fs.chmodSync(tempScriptPath, '755');

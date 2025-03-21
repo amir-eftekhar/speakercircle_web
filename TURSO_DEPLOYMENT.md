@@ -40,20 +40,23 @@ turso db tokens create speakerscircle
 We've created a script to export your local SQLite database to Turso:
 
 ```bash
-# Set environment variables for Turso
-export TURSO_DATABASE_URL="libsql://speakerscircle-your-username.turso.io"
-export TURSO_AUTH_TOKEN="your-auth-token"
-
-# Run the export script
-npm run export-to-turso
+# Create a simplified export script that works directly with the Turso CLI
+npx ts-node --compiler-options '{"module":"CommonJS"}' scripts/export-to-turso-simple.ts
 ```
+
+This script will:
+1. Extract the schema and data from your local SQLite database
+2. Create SQL statements for tables and data
+3. Execute those statements against your Turso database
 
 ### 4. Configure Vercel Environment Variables
 
 In the Vercel dashboard, add the following environment variables:
 
 - `TURSO_DATABASE_URL`: The URL of your Turso database (from `turso db show speakerscircle --url`)
+  Example: `libsql://speakerscircle-trivalleytechnology.turso.io`
 - `TURSO_AUTH_TOKEN`: The authentication token (from `turso db tokens create speakerscircle`)
+  Example: `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9...`
 - `NEXTAUTH_SECRET`: A random string for NextAuth.js session encryption
 - `NEXTAUTH_URL`: The URL of your deployed application
 - `NEXT_PUBLIC_APP_URL`: The URL of your deployed application

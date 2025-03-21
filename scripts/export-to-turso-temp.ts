@@ -1,5 +1,5 @@
-// This script exports the local SQLite database to Turso
-// Run it with: npx ts-node scripts/export-to-turso.ts
+// This is a temporary script to export the local SQLite database to Turso
+// with the correct database name
 
 import fs from 'fs';
 import path from 'path';
@@ -12,34 +12,6 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Exporting database to Turso...');
 
-  // Check if Turso CLI is installed
-  try {
-    execSync('turso --version', { stdio: 'ignore' });
-  } catch (error) {
-    console.error('Turso CLI is not installed. Please install it first:');
-    console.error('curl -sSfL https://get.tur.so/install.sh | bash');
-    process.exit(1);
-  }
-
-  // Check if TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are set
-  const tursoUrl = process.env.TURSO_DATABASE_URL;
-  const tursoToken = process.env.TURSO_AUTH_TOKEN;
-
-  if (!tursoUrl || !tursoToken) {
-    console.error('TURSO_DATABASE_URL and TURSO_AUTH_TOKEN must be set in the environment');
-    console.error('You can create a Turso database and get these values by running:');
-    console.error('turso db create speakerscircle');
-    console.error('turso db tokens create speakerscircle');
-    process.exit(1);
-  }
-
-  // Extract database name from URL
-  const dbName = tursoUrl.split('/').pop();
-  if (!dbName) {
-    console.error('Could not extract database name from TURSO_DATABASE_URL');
-    process.exit(1);
-  }
-
   // Path to the SQLite database
   const dbPath = path.resolve(process.cwd(), 'prisma/dev.db');
   if (!fs.existsSync(dbPath)) {
@@ -50,7 +22,7 @@ async function main() {
   try {
     // Export the SQLite database schema
     console.log('Exporting schema...');
-    const schema = await prisma.$queryRaw`SELECT sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_prisma_%'`;
+    const schema = await prisma.;
     
     // Create a temporary SQL file
     const tempSqlPath = path.resolve(process.cwd(), 'prisma/export.sql');
@@ -63,14 +35,14 @@ async function main() {
     
     // Export data for each table
     console.log('Exporting data...');
-    const tables = await prisma.$queryRaw`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_prisma_%'`;
+    const tables = await prisma.;
     
     for (const tableObj of tables as any[]) {
       const tableName = tableObj.name;
       console.log(`Exporting data from table: ${tableName}`);
       
       // Get all rows from the table
-      const rows = await prisma.$queryRawUnsafe(`SELECT * FROM "${tableName}"`) as Record<string, any>[];
+      const rows = await prisma.() as Record<string, any>[];
       
       // Skip empty tables
       if (rows.length === 0) continue;
@@ -96,15 +68,11 @@ async function main() {
     console.log(`SQL export written to ${tempSqlPath}`);
     
     // Import the SQL file to Turso
-    console.log(`Importing to Turso database: ${dbName}...`);
-    // Export the database using turso CLI
-    // The turso CLI uses the auth token from the login, not from the environment variable
-    // So we'll create a temporary script to run the command
+    console.log(`Importing to Turso database: speakerscircle...`);
+    
+    // Create a temporary script to run the command
     const tempScriptPath = path.resolve(process.cwd(), 'prisma/export-script.sh');
-    const scriptContent = `#!/bin/bash
-
-# Export the database to Turso
-turso db shell ${dbName} < ${tempSqlPath}`;
+    const scriptContent = `#!/bin/bash\n\n# Export the database to Turso\nturso db shell speakerscircle < ${tempSqlPath}`;
     
     fs.writeFileSync(tempScriptPath, scriptContent);
     fs.chmodSync(tempScriptPath, '755');
@@ -127,7 +95,7 @@ turso db shell ${dbName} < ${tempSqlPath}`;
     console.error('Error exporting database:', error);
     process.exit(1);
   } finally {
-    await prisma.$disconnect();
+    await prisma.();
   }
 }
 

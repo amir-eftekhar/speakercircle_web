@@ -1,5 +1,13 @@
-// This script exports the local SQLite database to Turso
-// Run it with: npx ts-node scripts/export-to-turso.ts
+#!/bin/bash
+
+# Set environment variables for Turso
+export TURSO_DATABASE_URL="https://speakerscircle-trivalleytechnology.turso.io"
+export TURSO_AUTH_TOKEN="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDI1NjQ2NjMsImlhdCI6MTc0MjU2MTA2MywiaWQiOiI5MzQzYTkzYi05MjRiLTQyOGMtOGE5ZC05YWNhZjM3YmRiMjkiLCJyaWQiOiJmYTUxNWEzYS05ZTI4LTQxODAtOWIyYi1jODljMWQ1YTlkN2YifQ.SvRurctyExR1w8_rM_nmNTVWQvHq4Q_l7T-0XQ2-xvst45k1P1k3nGklsYO61px8qADQ381iHBuXlwHy8LvzBg"
+
+# Create a modified version of the export script
+cat > ./scripts/export-to-turso-temp.ts << EOL
+// This is a temporary script to export the local SQLite database to Turso
+// with the correct database name
 
 import fs from 'fs';
 import path from 'path';
@@ -12,38 +20,10 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Exporting database to Turso...');
 
-  // Check if Turso CLI is installed
-  try {
-    execSync('turso --version', { stdio: 'ignore' });
-  } catch (error) {
-    console.error('Turso CLI is not installed. Please install it first:');
-    console.error('curl -sSfL https://get.tur.so/install.sh | bash');
-    process.exit(1);
-  }
-
-  // Check if TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are set
-  const tursoUrl = process.env.TURSO_DATABASE_URL;
-  const tursoToken = process.env.TURSO_AUTH_TOKEN;
-
-  if (!tursoUrl || !tursoToken) {
-    console.error('TURSO_DATABASE_URL and TURSO_AUTH_TOKEN must be set in the environment');
-    console.error('You can create a Turso database and get these values by running:');
-    console.error('turso db create speakerscircle');
-    console.error('turso db tokens create speakerscircle');
-    process.exit(1);
-  }
-
-  // Extract database name from URL
-  const dbName = tursoUrl.split('/').pop();
-  if (!dbName) {
-    console.error('Could not extract database name from TURSO_DATABASE_URL');
-    process.exit(1);
-  }
-
   // Path to the SQLite database
   const dbPath = path.resolve(process.cwd(), 'prisma/dev.db');
   if (!fs.existsSync(dbPath)) {
-    console.error(`SQLite database not found at ${dbPath}`);
+    console.error(\`SQLite database not found at \${dbPath}\`);
     process.exit(1);
   }
 
@@ -58,7 +38,7 @@ async function main() {
     
     // Add schema creation statements
     for (const table of schema as any[]) {
-      sqlContent += `${table.sql};\n\n`;
+      sqlContent += \`\${table.sql};\n\n\`;
     }
     
     // Export data for each table
@@ -67,7 +47,7 @@ async function main() {
     
     for (const tableObj of tables as any[]) {
       const tableName = tableObj.name;
-      console.log(`Exporting data from table: ${tableName}`);
+      console.log(\`Exporting data from table: \${tableName}\`);
       
       // Get all rows from the table
       const rows = await prisma.$queryRawUnsafe(`SELECT * FROM "${tableName}"`) as Record<string, any>[];
@@ -80,12 +60,12 @@ async function main() {
         const columns = Object.keys(row).join('", "');
         const values = Object.values(row).map(v => 
           v === null ? 'NULL' : 
-          typeof v === 'string' ? `'${v.replace(/'/g, "''")}'` : 
-          v instanceof Date ? `'${v.toISOString()}'` : 
+          typeof v === 'string' ? \`'\${v.replace(/'/g, "''")}'\` : 
+          v instanceof Date ? \`'\${v.toISOString()}'\` : 
           v
         ).join(', ');
         
-        sqlContent += `INSERT INTO "${tableName}" ("${columns}") VALUES (${values});\n`;
+        sqlContent += \`INSERT INTO "\${tableName}" ("\${columns}") VALUES (\${values});\n\`;
       }
       
       sqlContent += '\n';
@@ -93,18 +73,14 @@ async function main() {
     
     // Write the SQL file
     fs.writeFileSync(tempSqlPath, sqlContent);
-    console.log(`SQL export written to ${tempSqlPath}`);
+    console.log(\`SQL export written to \${tempSqlPath}\`);
     
     // Import the SQL file to Turso
-    console.log(`Importing to Turso database: ${dbName}...`);
-    // Export the database using turso CLI
-    // The turso CLI uses the auth token from the login, not from the environment variable
-    // So we'll create a temporary script to run the command
+    console.log(\`Importing to Turso database: speakerscircle...\`);
+    
+    // Create a temporary script to run the command
     const tempScriptPath = path.resolve(process.cwd(), 'prisma/export-script.sh');
-    const scriptContent = `#!/bin/bash
-
-# Export the database to Turso
-turso db shell ${dbName} < ${tempSqlPath}`;
+    const scriptContent = \`#!/bin/bash\n\n# Export the database to Turso\nturso db shell speakerscircle < \${tempSqlPath}\`;
     
     fs.writeFileSync(tempScriptPath, scriptContent);
     fs.chmodSync(tempScriptPath, '755');
@@ -132,3 +108,7 @@ turso db shell ${dbName} < ${tempSqlPath}`;
 }
 
 main();
+EOL
+
+# Run the temporary export script
+npx ts-node --compiler-options '{"module":"CommonJS"}' ./scripts/export-to-turso-temp.ts

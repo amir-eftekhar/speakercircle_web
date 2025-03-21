@@ -12,7 +12,8 @@
     "reset-db": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/reset-db.ts",
     "build-for-vercel": "./scripts/build-for-vercel.sh",
     "deploy": "./scripts/deploy-to-vercel.sh",
-    "export-to-turso": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/export-to-turso.ts"
+    "export-to-turso": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/export-to-turso.ts",
+    "export-to-turso-simple": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' scripts/export-to-turso-simple.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",

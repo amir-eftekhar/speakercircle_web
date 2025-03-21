@@ -42,7 +42,7 @@ else
   else
     echo "✅ Turso environment variables are set."
     echo "🔄 Exporting database to Turso..."
-    npm run export-to-turso || {
+    npx ts-node --compiler-options '{"module":"CommonJS"}' scripts/export-to-turso-simple.ts || {
       echo "⚠️  Failed to export database to Turso. Continuing anyway..."
     }
   fi
